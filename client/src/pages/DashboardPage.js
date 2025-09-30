@@ -65,9 +65,14 @@ const DashboardPage = () => {
           });
         }
         
-        // Fetch winning bids for all users
-        const winningBidsResponse = await bidsAPI.getWinningBids();
-        setWinningBids(winningBidsResponse.data.data.bids || []);
+        // Try to fetch winning bids for all users (skip if authentication fails)
+        try {
+          const winningBidsResponse = await bidsAPI.getWinningBids();
+          setWinningBids(winningBidsResponse.data.data.bids || []);
+        } catch (error) {
+          console.warn('Could not fetch winning bids (authentication required):', error.response?.data?.message);
+          setWinningBids([]);
+        }
         
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
