@@ -33,7 +33,8 @@ api.interceptors.response.use(
       // Token expired or invalid
       localStorage.removeItem('token');
       delete api.defaults.headers.common['Authorization'];
-      window.location.href = '/login';
+      // Don't redirect to login for demo - just log the error
+      console.warn('Authentication error:', error.response?.data?.message);
     }
     return Promise.reject(error);
   }
