@@ -1,0 +1,15 @@
+# =============================================================================
+# RENDER CLIENT (APP) ENVIRONMENT VARIABLES  
+# =============================================================================
+# Copy these variables to your Render client service environment settings
+# Replace the server URLs with your actual server URL from Render
+
+# API Configuration - UPDATE THESE with your actual Render server URL
+REACT_APP_API_URL=https://YOUR-SERVER-SERVICE-NAME.onrender.com/api
+REACT_APP_SERVER_URL=https://YOUR-SERVER-SERVICE-NAME.onrender.com
+
+# Facebook App Configuration - Your existing credentials
+REACT_APP_FACEBOOK_APP_ID=1347679723547415
+
+# Environment
+REACT_APP_ENV=production

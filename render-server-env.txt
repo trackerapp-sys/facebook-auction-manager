@@ -1,0 +1,30 @@
+# =============================================================================
+# RENDER SERVER (API) ENVIRONMENT VARIABLES
+# =============================================================================
+# Copy these variables to your Render server service environment settings
+# Replace the CLIENT_URL with your actual client URL from Render
+
+NODE_ENV=production
+PORT=5000
+
+# Database - Your existing MongoDB Atlas connection
+MONGODB_URI=mongodb+srv://auctionuser:l3ayoAEFTKmfAguc@app.rznajn1.mongodb.net/facebook-auction-manager?retryWrites=true&w=majority&appName=app
+
+# JWT Secret - Enhanced for production
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-2024-secure-random-string-for-render-deployment
+
+# Facebook Integration - Your existing credentials
+FACEBOOK_APP_ID=1347679723547415
+FACEBOOK_APP_SECRET=41b2613e2b6ee258d4a559b75c93fc2b
+FACEBOOK_ACCESS_TOKEN=EAATJtSMxaxcBPu6Psu8WZANJfopzUWSJRUKRwU2Eb7zzhmHaVzIT4NPHcCWng4aPxRDxObVFzJ7gMIceR2CyfhyzP1eRZC5qObv78soL1aBnwsJQWeRhEISTJmPZCW1wwtj1kCsmgS7S7hL4hBL5FBalYnGUg480pkmQJO3zYhvH2hSgIhRRtVJxAeuYdptTwZDZD
+FACEBOOK_WEBHOOK_VERIFY_TOKEN=auction-webhook-secret-2024
+
+# Client URL - UPDATE THIS with your actual Render client URL
+CLIENT_URL=https://YOUR-CLIENT-SERVICE-NAME.onrender.com
+
+# Rate Limiting (optional)
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Logging
+LOG_LEVEL=info
