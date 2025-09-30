@@ -13,6 +13,7 @@ const FacebookComments = ({ auctionId, url }) => {
     if (auctionId) {
       const finalUrl = url || `${window.location.origin}/auctions/${auctionId}`;
       setCommentsUrl(finalUrl);
+      console.log(`📘 Loading Facebook Comments Plugin for auction ${auctionId}:`, finalUrl);
     }
 
     // Load Facebook SDK
@@ -30,20 +31,25 @@ const FacebookComments = ({ auctionId, url }) => {
         // Subscribe to comment events for automatic bid detection
         window.FB.Event.subscribe('comment.create', function(response) {
           console.log('💬 New Facebook comment detected:', response);
-          
+          console.log('   Auction ID:', auctionId);
+          console.log('   Socket connected:', !!socket);
+
           // Extract comment data
           const commentData = {
             commentId: response.commentID,
             href: response.href,
             parentCommentID: response.parentCommentID || null
           };
-          
+
           // Send to server for bid processing
           if (socket) {
+            console.log('   📤 Sending comment to server for processing...');
             socket.emit('facebook_comment', {
               auctionId,
               ...commentData
             });
+          } else {
+            console.warn('   ⚠️ Socket not connected, cannot send comment to server');
           }
         });
       };
