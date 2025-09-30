@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Bid Creation</title>
+</head>
+<body>
+    <h1>Test Bid Creation</h1>
+    <form id="bidForm">
+        <label>Auction ID:</label><br>
+        <input type="text" id="auctionId" value="68db62875ebbef6be428c82b"><br><br>
+        
+        <label>Bidder Name:</label><br>
+        <input type="text" id="bidderName" value="John Smith"><br><br>
+        
+        <label>Bid Amount:</label><br>
+        <input type="number" id="amount" value="21.00" step="0.01"><br><br>
+        
+        <button type="submit">Place Test Bid</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <script>
+        document.getElementById('bidForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                auctionId: document.getElementById('auctionId').value,
+                bidderName: document.getElementById('bidderName').value,
+                amount: parseFloat(document.getElementById('amount').value)
+            };
+            
+            try {
+                const response = await fetch('https://auction-server-8snz.onrender.com/api/bids/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                
+                if (result.success) {
+                    alert('Bid placed successfully!');
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = 'Error: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
