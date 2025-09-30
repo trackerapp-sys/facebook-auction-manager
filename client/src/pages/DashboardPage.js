@@ -28,7 +28,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { auctionsAPI, bidsAPI } from '../services/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import AuctionTable from '../components/auctions/AuctionTable';
-import FacebookComments from '../components/auctions/FacebookComments';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -265,20 +264,6 @@ const DashboardPage = () => {
         </Grid>
       </Grid>
 
-      {/* Hidden Facebook Comments Plugin for Background Monitoring */}
-      {/* This monitors all active auctions with Facebook posts for new comments/bids */}
-      <Box sx={{ display: 'none' }}>
-        {recentAuctions
-          .filter(auction => auction.status === 'active' && auction.facebookPostUrl)
-          .map(auction => (
-            <FacebookComments
-              key={auction._id}
-              auctionId={auction._id}
-              url={auction.facebookPostUrl}
-            />
-          ))
-        }
-      </Box>
     </Container>
   );
 };
