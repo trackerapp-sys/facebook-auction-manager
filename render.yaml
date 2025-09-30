@@ -6,7 +6,7 @@ services:
     region: oregon
     plan: starter
     rootDir: server
-    buildCommand: npm ci --only=production
+    buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
     envVars:
