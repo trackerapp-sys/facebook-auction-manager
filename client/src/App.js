@@ -86,7 +86,6 @@ function App() {
           
           {/* Public Home Page */}
           <Route path="/" element={<HomePage />} />
-          <Route path="/auctions" element={<AuctionsPage />} />
           <Route path="/auctions/:id" element={<AuctionDetailPage />} />
           {/* Redirect singular /auction/:id to plural /auctions/:id */}
           <Route path="/auction/:id" element={<AuctionDetailPage />} />

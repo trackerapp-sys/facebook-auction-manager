@@ -38,12 +38,6 @@ const mainMenuItems = [
     path: '/dashboard',
     description: 'Overview & Analytics'
   },
-  {
-    text: 'All Auctions',
-    icon: <Gavel />,
-    path: '/auctions',
-    description: 'Manage Active Auctions'
-  },
 ];
 
 const createMenuItems = [

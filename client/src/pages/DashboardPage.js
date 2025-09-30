@@ -211,12 +211,6 @@ const DashboardPage = () => {
                 >
                   Create Live Auction
                 </Button>
-                <Button
-                  variant="text"
-                  onClick={() => navigate('/auctions')}
-                >
-                  View All Auctions
-                </Button>
               </Box>
             </CardContent>
           </Card>
