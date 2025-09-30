@@ -52,10 +52,11 @@ const AuctionDetailPage = () => {
 
   const fetchAuction = async () => {
     try {
-      const response = await fetch(`/api/auctions/${id}`);
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${apiUrl}/auctions/${id}`);
       if (response.ok) {
         const data = await response.json();
-        setAuction(data.data);
+        setAuction(data.data.auction || data.data);
       } else {
         setError('Auction not found');
       }
@@ -68,7 +69,8 @@ const AuctionDetailPage = () => {
 
   const fetchBids = async () => {
     try {
-      const response = await fetch(`/api/bids/auction/${id}`);
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${apiUrl}/bids/auction/${id}`);
       if (response.ok) {
         const data = await response.json();
         setBids(Array.isArray(data.data) ? data.data : []);
