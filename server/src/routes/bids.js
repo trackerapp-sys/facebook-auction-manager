@@ -299,6 +299,68 @@ router.delete('/:id', [
   }
 });
 
+// @route   POST /api/bids/test
+// @desc    Add a test bid (for testing purposes)
+// @access  Public (for demo)
+router.post('/test', [
+  body('auctionId').isMongoId().withMessage('Invalid auction ID'),
+  body('bidderName').trim().isLength({ min: 2 }).withMessage('Bidder name is required'),
+  body('amount').isFloat({ min: 0.01 }).withMessage('Bid amount must be at least $0.01'),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { auctionId, bidderName, amount } = req.body;
+
+    // Find or create test bidder
+    const bidderEmail = `${bidderName.toLowerCase().replace(/\s+/g, '')}@test.com`;
+    let bidder = await User.findOne({ email: bidderEmail });
+
+    if (!bidder) {
+      bidder = new User({
+        name: bidderName,
+        email: bidderEmail,
+        role: 'bidder',
+        password: 'testpassword123'
+      });
+      await bidder.save();
+    }
+
+    // Use BidService to handle bid placement logic
+    const result = await BidService.placeBid({
+      auctionId,
+      bidderId: bidder._id,
+      amount,
+      bidType: 'test',
+      io: req.app.get('io')
+    });
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Test bid placed successfully',
+      data: result.data
+    });
+
+  } catch (error) {
+    console.error('Error placing test bid:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to place test bid'
+    });
+  }
+});
+
 // @route   POST /api/bids/manual
 // @desc    Manually add a bid (for manual mode or admin)
 // @access  Private (Admin/Auctioneer)
