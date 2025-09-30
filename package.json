@@ -1,0 +1,32 @@
+{
+  "name": "facebook-auction-manager",
+  "version": "1.0.0",
+  "description": "Professional Facebook Group Auction Management System with Real-time Bid Tracking",
+  "main": "server/src/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd server && npm run dev",
+    "client:dev": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "test": "cd server && npm test && cd ../client && npm test",
+    "render:server": "cd server && npm ci --only=production && npm start",
+    "render:client": "cd client && npm ci && npm run build"
+  },
+  "keywords": [
+    "facebook",
+    "auction",
+    "bid-tracking",
+    "real-time",
+    "automation"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "react-scripts": "^5.0.1"
+  }
+}

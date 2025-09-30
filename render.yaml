@@ -1,0 +1,58 @@
+services:
+  # Backend Server
+  - type: web
+    name: auction-server
+    env: node
+    region: oregon
+    plan: starter
+    rootDir: server
+    buildCommand: npm ci --only=production
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        fromDatabase:
+          name: auction-mongodb
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FACEBOOK_APP_ID
+        sync: false
+      - key: FACEBOOK_APP_SECRET
+        sync: false
+      - key: FACEBOOK_ACCESS_TOKEN
+        sync: false
+      - key: FACEBOOK_WEBHOOK_VERIFY_TOKEN
+        sync: false
+      - key: CLIENT_URL
+        value: https://auction-client.onrender.com
+    
+  # Frontend Client
+  - type: web
+    name: auction-client
+    env: static
+    region: oregon
+    plan: starter
+    rootDir: client
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://auction-server.onrender.com/api
+      - key: REACT_APP_SERVER_URL
+        value: https://auction-server.onrender.com
+      - key: REACT_APP_FACEBOOK_APP_ID
+        sync: false
+      - key: REACT_APP_ENV
+        value: production
+
+databases:
+  - name: auction-mongodb
+    databaseName: facebook-auction-manager
+    user: auctionuser
+    region: oregon
+    plan: starter

@@ -1,0 +1,62 @@
+# Alternative Render configuration if the main one doesn't work
+# This uses absolute paths and different approach
+
+services:
+  # Backend Server - Alternative Configuration
+  - type: web
+    name: auction-server-alt
+    env: node
+    region: oregon
+    plan: starter
+    buildCommand: |
+      echo "Building from project root..."
+      ls -la
+      cd server
+      npm ci --only=production
+    startCommand: |
+      echo "Starting from project root..."
+      cd server
+      npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FACEBOOK_APP_ID
+        sync: false
+      - key: FACEBOOK_APP_SECRET
+        sync: false
+      - key: FACEBOOK_ACCESS_TOKEN
+        sync: false
+      - key: FACEBOOK_WEBHOOK_VERIFY_TOKEN
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+    
+  # Frontend Client - Alternative Configuration
+  - type: web
+    name: auction-client-alt
+    env: static
+    region: oregon
+    plan: starter
+    buildCommand: |
+      echo "Building client from project root..."
+      ls -la
+      cd client
+      npm ci
+      npm run build
+    staticPublishPath: ./client/build
+    envVars:
+      - key: REACT_APP_API_URL
+        sync: false
+      - key: REACT_APP_SERVER_URL
+        sync: false
+      - key: REACT_APP_FACEBOOK_APP_ID
+        sync: false
+      - key: REACT_APP_ENV
+        value: production

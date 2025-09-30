@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: auction-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: facebook-auction-manager
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - auction-network
+
+  # Backend Server
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: auction-server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/facebook-auction-manager?authSource=admin
+      JWT_SECRET: your-production-jwt-secret-change-this
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET}
+      FACEBOOK_ACCESS_TOKEN: ${FACEBOOK_ACCESS_TOKEN}
+      FACEBOOK_WEBHOOK_VERIFY_TOKEN: ${FACEBOOK_WEBHOOK_VERIFY_TOKEN}
+      CLIENT_URL: http://localhost:3000
+    depends_on:
+      - mongodb
+    networks:
+      - auction-network
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+
+  # Frontend Client
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: auction-client
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:5000/api
+      REACT_APP_SERVER_URL: http://localhost:5000
+      REACT_APP_FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
+      REACT_APP_ENV: production
+    depends_on:
+      - server
+    networks:
+      - auction-network
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+
+volumes:
+  mongodb_data:
+
+networks:
+  auction-network:
+    driver: bridge
