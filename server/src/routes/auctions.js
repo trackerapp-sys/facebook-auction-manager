@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const { body, validationResult, param } = require('express-validator');
 const Auction = require('../models/Auction');
 const Bid = require('../models/Bid');
+const User = require('../models/User');
 const { authenticate, authorize } = require('../middleware/auth');
 const { paginate } = require('../middleware/pagination');
 
@@ -174,8 +175,20 @@ router.post('/', [
       });
     }
 
-    // Create a default auctioneer ID for auction managers (no authentication required)
-    const defaultAuctioneerId = new mongoose.Types.ObjectId('507f1f77bcf86cd799439011');
+    // Find or create a default auctioneer for auction managers
+    let defaultAuctioneer = await User.findOne({ email: 'manager@auction.local' });
+
+    if (!defaultAuctioneer) {
+      defaultAuctioneer = new User({
+        name: 'Auction Manager',
+        email: 'manager@auction.local',
+        role: 'auctioneer',
+        password: 'defaultpassword123',
+        isActive: true
+      });
+      await defaultAuctioneer.save();
+      console.log('✅ Created default auctioneer user');
+    }
 
     const auction = new Auction({
       title,
@@ -186,7 +199,7 @@ router.post('/', [
       endTime: new Date(endTime),
       category,
       images: images || [],
-      auctioneer: defaultAuctioneerId,
+      auctioneer: defaultAuctioneer._id,
       facebookPostId,
       facebookPostUrl,
       facebookGroupId,

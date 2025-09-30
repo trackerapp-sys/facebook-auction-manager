@@ -2,7 +2,19 @@ const cron = require('node-cron');
 const Auction = require('../models/Auction');
 const Bid = require('../models/Bid');
 const User = require('../models/User');
-const NotificationService = require('./NotificationService');
+
+// Try to import NotificationService, but don't fail if it doesn't exist
+let NotificationService;
+try {
+  NotificationService = require('./NotificationService');
+} catch (error) {
+  console.warn('⚠️ NotificationService not found, notifications will be disabled');
+  NotificationService = {
+    sendTimeWarningNotification: async () => {},
+    sendWinnerNotification: async () => {},
+    sendAuctionEndedNotification: async () => {}
+  };
+}
 
 class BidTrackingService {
   constructor(io) {
@@ -13,17 +25,22 @@ class BidTrackingService {
   // Initialize the service
   initialize() {
     console.log('🔄 Initializing Bid Tracking Service...');
-    
-    // Start auction monitoring
-    this.startAuctionMonitoring();
-    
-    // Schedule auction end checks every minute
-    this.scheduleAuctionEndChecks();
-    
-    // Schedule cleanup tasks
-    this.scheduleCleanupTasks();
-    
-    console.log('✅ Bid Tracking Service initialized');
+
+    try {
+      // Start auction monitoring (with error handling)
+      this.startAuctionMonitoring();
+
+      // Schedule auction end checks every minute
+      this.scheduleAuctionEndChecks();
+
+      // Schedule cleanup tasks
+      this.scheduleCleanupTasks();
+
+      console.log('✅ Bid Tracking Service initialized');
+    } catch (error) {
+      console.error('❌ Error initializing Bid Tracking Service:', error);
+      console.log('⚠️ Continuing without bid tracking...');
+    }
   }
 
   // Start monitoring active auctions
