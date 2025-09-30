@@ -39,7 +39,8 @@ services:
     plan: starter
     rootDir: client
     buildCommand: npm install --legacy-peer-deps && npm run build
-    staticPublishPath: build
+    staticPublishPath: ./build
+    publishPath: build
     envVars:
       - key: REACT_APP_API_URL
         value: https://auction-server.onrender.com/api
