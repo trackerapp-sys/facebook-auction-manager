@@ -274,7 +274,7 @@ const DashboardPage = () => {
       {/* Hidden Facebook Comments Plugin for Background Monitoring */}
       {/* This monitors all active auctions with Facebook posts for new comments/bids */}
       <Box sx={{ display: 'none' }}>
-        {auctions
+        {recentAuctions
           .filter(auction => auction.status === 'active' && auction.facebookPostUrl)
           .map(auction => (
             <FacebookComments
