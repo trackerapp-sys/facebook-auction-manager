@@ -16,6 +16,19 @@ try {
   };
 }
 
+// Try to import FacebookService, but don't fail if it doesn't exist
+let FacebookService;
+try {
+  FacebookService = require('./FacebookService');
+} catch (error) {
+  console.warn('⚠️ FacebookService not found, Facebook monitoring will be disabled');
+  FacebookService = {
+    getPostComments: async () => [],
+    parseBidAmount: () => null,
+    findOrCreateUser: async () => null
+  };
+}
+
 class BidTrackingService {
   constructor(io) {
     this.io = io;
@@ -35,6 +48,9 @@ class BidTrackingService {
 
       // Schedule cleanup tasks
       this.scheduleCleanupTasks();
+
+      // Schedule Facebook comment monitoring
+      this.scheduleFacebookCommentMonitoring();
 
       console.log('✅ Bid Tracking Service initialized');
     } catch (error) {
@@ -61,21 +77,29 @@ class BidTrackingService {
   // Monitor a specific auction
   monitorAuction(auction) {
     const auctionId = auction._id.toString();
-    
+
     // Create a cron job for this auction that runs every minute
     const cronExpression = '* * * * *'; // Every minute
-    
+
     const job = cron.schedule(cronExpression, async () => {
       await this.checkAuctionStatus(auction);
+
+      // Also check for new Facebook comments if auction has a Facebook post
+      if (auction.facebookPostId) {
+        await this.checkFacebookComments(auction);
+      }
     }, {
       scheduled: false
     });
-    
+
     // Store the job
     this.cronJobs.set(auctionId, job);
     job.start();
-    
+
     console.log(`🎯 Started monitoring auction: ${auction.title} (${auctionId})`);
+    if (auction.facebookPostId) {
+      console.log(`   📘 Facebook monitoring enabled for post: ${auction.facebookPostId}`);
+    }
   }
 
   // Stop monitoring an auction
@@ -322,6 +346,127 @@ class BidTrackingService {
       activeMonitors: this.cronJobs.size,
       monitoredAuctions: Array.from(this.cronJobs.keys())
     };
+  }
+
+  // Check Facebook comments for new bids
+  async checkFacebookComments(auction) {
+    try {
+      if (!FacebookService || !FacebookService.getPostComments) {
+        return; // Facebook service not available
+      }
+
+      const auctionId = auction._id.toString();
+
+      // Get the last check time for this auction (stored in memory)
+      if (!this.lastCommentCheck) {
+        this.lastCommentCheck = new Map();
+      }
+
+      const lastCheck = this.lastCommentCheck.get(auctionId) || new Date(auction.startTime);
+      const now = new Date();
+
+      console.log(`📘 Checking Facebook comments for auction: ${auction.title}`);
+
+      // Get comments from Facebook
+      const comments = await FacebookService.getPostComments(auction.facebookPostId, 50);
+
+      if (!comments || comments.length === 0) {
+        console.log(`   No comments found for post ${auction.facebookPostId}`);
+        this.lastCommentCheck.set(auctionId, now);
+        return;
+      }
+
+      console.log(`   Found ${comments.length} total comments`);
+
+      // Filter comments that are newer than last check
+      const newComments = comments.filter(comment => {
+        const commentTime = new Date(comment.created_time);
+        return commentTime > lastCheck;
+      });
+
+      if (newComments.length === 0) {
+        console.log(`   No new comments since last check`);
+        this.lastCommentCheck.set(auctionId, now);
+        return;
+      }
+
+      console.log(`   Processing ${newComments.length} new comments`);
+
+      // Process each new comment for bids
+      for (const comment of newComments) {
+        await this.processCommentForBid(auction, comment);
+      }
+
+      // Update last check time
+      this.lastCommentCheck.set(auctionId, now);
+
+    } catch (error) {
+      console.error(`Error checking Facebook comments for auction ${auction._id}:`, error.message);
+    }
+  }
+
+  // Process a single comment for bid detection
+  async processCommentForBid(auction, comment) {
+    try {
+      const bidAmount = FacebookService.parseBidAmount(comment.message);
+
+      if (!bidAmount) {
+        console.log(`   💭 Comment from ${comment.from.name}: "${comment.message}" - No bid detected`);
+        return;
+      }
+
+      console.log(`   💰 Bid detected: $${bidAmount} from ${comment.from.name}`);
+
+      // Find or create user
+      const user = await FacebookService.findOrCreateUser({
+        facebookId: comment.from.id,
+        name: comment.from.name
+      });
+
+      if (!user) {
+        console.log(`   ❌ Failed to create user for ${comment.from.name}`);
+        return;
+      }
+
+      // Import BidService
+      const BidService = require('./BidService');
+
+      // Place the bid
+      const bidResult = await BidService.placeBid({
+        auctionId: auction._id,
+        bidderId: user._id,
+        bidderName: comment.from.name,
+        amount: bidAmount,
+        facebookCommentId: comment.id,
+        bidType: 'facebook',
+        io: this.io
+      });
+
+      if (bidResult.success) {
+        console.log(`   ✅ Bid placed successfully: $${bidAmount} by ${comment.from.name}`);
+
+        // Emit real-time update to all connected clients
+        this.io.emit('new_bid', {
+          auction: auction._id,
+          bid: bidResult.data.bid,
+          bidderName: comment.from.name,
+          amount: bidAmount
+        });
+
+        // Also emit to auction-specific room
+        this.io.to(`auction-${auction._id}`).emit('bid_update', {
+          auction: auction._id,
+          currentBid: bidAmount,
+          bidderName: comment.from.name,
+          totalBids: bidResult.data.auction.totalBids
+        });
+      } else {
+        console.log(`   ❌ Failed to place bid: ${bidResult.message}`);
+      }
+
+    } catch (error) {
+      console.error(`Error processing comment for bid:`, error.message);
+    }
   }
 }
 
