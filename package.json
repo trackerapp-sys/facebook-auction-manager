@@ -7,12 +7,12 @@
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "cd server && npm run dev",
     "client:dev": "cd client && npm start",
-    "build": "cd client && npm run build",
+    "build": "cd client && npm install --legacy-peer-deps && npm run build",
     "start": "cd server && npm start",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
     "test": "cd server && npm test && cd ../client && npm test",
-    "render:server": "cd server && npm ci --only=production && npm start",
-    "render:client": "cd client && npm ci && npm run build"
+    "render:server": "cd server && npm install --only=production && npm start",
+    "render:client": "cd client && npm install --legacy-peer-deps && npm run build"
   },
   "keywords": [
     "facebook",
@@ -26,7 +26,5 @@
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
-  "dependencies": {
-    "react-scripts": "^5.0.1"
-  }
+  "dependencies": {}
 }
